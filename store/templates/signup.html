@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Costomer Signup{% endblock %}
+{% block content %}
+
+
+<div class="container">
+    <div class="row my-3">
+        <div class="col-sm-6 offset-sm-3">
+             <h3>Customer Signup</h3>
+                <form  method="POST" class="shadow p-5">
+
+                    {% if error %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                    {% endif %}
+
+                    {% if success %}
+                    <div class="alert alert-success">{{ success }}</div>
+                    {% endif %}
+
+
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="" class="form-control-lg">Name</label>
+                        <input  type="text" name="name" id="" value="{{ values.name }}"class="form-control" placeholder="Enter your name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="" class="form-control-lg">Mobile No.</label>
+                        <input  type="text" name="phone" id="" value="{{ values.phone }}"class="form-control" placeholder="Enter your mobile number">
+                    </div>
+
+
+                    <div class="form-group pt-4">
+                        <input class="btn btn-sm btn-info" type="submit" value="Signup">
+                    </div>
+
+                    <div class="text-center text-primary fw-bold">
+                    <small class="form-control-sm">Existing Costomer ?</small>
+                    <a href="/login" class="text-danger form-control-sm">Login</a>
+                </div>
+                
+                   
+                 </form>
+
+                
+
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+{% endblock %}
