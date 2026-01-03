@@ -29,11 +29,19 @@
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
          <span class="navbar-toggler-icon"></span>
          </button>
+         
+
+         {% if request.session %}
+
+
+
          <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
                <li class="nav-item active">
                   <a class="nav-link" href="/">Home <span class="sr-only"></span></a>
                </li>
+
+
             </ul>
             <form class="d-flex">
                <input class="form-control me-2 mr-2" type="search" placeholder="Search" aria-label="Search" name="query">
@@ -42,11 +50,11 @@
             <ul class=" navbar-nav my-2 my-lg-0">
                <li class="nav-item active dropdown">
                   <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  Adarsh
+                  {{name}}
                   </a>
                   <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                      <a class="dropdown-item" href="#">Orders</a>
-                     <a class="dropdown-item" href="#">Logout</a>
+                     <a class="dropdown-item" href="/logout">Logout</a>
                   </div>
                </li>
                <li class="nav-item active">
@@ -54,12 +62,16 @@
                   <span class="badge bg-danger">4</span>
                   <span class="sr-only">(current)</span></a>
                </li>
+
+               {% else %}
                <li class="nav-item active">
-                  <a class="nav-link" href="#">Login<span class="sr-only"></span></a>
+                  <a class="nav-link" href="/login">Login<span class="sr-only"></span></a>
                </li>
                <li class="nav-item active">
                   <a class="nav-link text" href="#">Register<span class="sr-only"></span></a>
                </li>
+
+               {% endif %}
             </ul>
          </div>
       </nav>
