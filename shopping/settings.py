@@ -9,6 +9,9 @@ import os
 # MEDIA_URL = '/upload/'
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'upload')
 
+# !  payment option 
+RAZORPAY_KEY_ID = "rzp_test_S32mwEZSLeIptZ"
+RAZORPAY_KEY_SECRET = "6lSyng1nhbB3U61V2l57bnnm"
 
 
 # Quick-start development settings - unsuitable for production

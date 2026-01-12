@@ -9,6 +9,10 @@ from .models.cart import Cart
 from .models.order import OrderDetail
 
 import uuid
+import razorpay
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+
 
 from django.http import JsonResponse
 from django.db.models import Q
@@ -274,7 +278,8 @@ def checkout(request):
             )
 
 
-        return redirect('upi_payment', order_id=last_order.id)
+        return redirect('start_payment', order_id=last_order.id)
+
 
     else:
         return redirect('login')
@@ -381,3 +386,59 @@ def payment_success(request):
         Cart.objects.filter(phone=phone).delete()
 
     return render(request, 'payment_success.html')
+
+
+# ! payment with razorpay
+client = razorpay.Client(
+    auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+)
+
+def start_payment(request, order_id):
+    order = OrderDetail.objects.get(id=order_id)
+
+    razorpay_order = client.order.create({
+        "amount": int(order.price * 100),  # paise
+        "currency": "INR",
+        "payment_capture": "1"
+    })
+
+    # Save Razorpay order id
+    order.transaction_id = razorpay_order["id"]
+    order.save()
+
+    return render(request, "razorpay_payment.html", {
+        "order": order,
+        "razorpay_key": settings.RAZORPAY_KEY_ID,
+        "razorpay_order_id": razorpay_order["id"],
+        "amount": order.price
+    })
+
+# ! payment varification
+def verify_payment(request):
+    payment_id = request.GET.get("razorpay_payment_id")
+    order_id = request.GET.get("razorpay_order_id")
+    signature = request.GET.get("razorpay_signature")
+
+    try:
+        client.utility.verify_payment_signature({
+            "razorpay_payment_id": payment_id,
+            "razorpay_order_id": order_id,
+            "razorpay_signature": signature
+        })
+
+        order = OrderDetail.objects.get(transaction_id=order_id)
+        order.payment_status = "SUCCESS"
+        order.save()
+
+        # clear cart AFTER success
+        phone = request.session.get("phone")
+        if phone:
+            Cart.objects.filter(phone=phone).delete()
+
+        return redirect("payment_success")
+
+    except:
+        order = OrderDetail.objects.get(transaction_id=order_id)
+        order.payment_status = "FAILED"
+        order.save()
+        return HttpResponse("Payment verification failed")

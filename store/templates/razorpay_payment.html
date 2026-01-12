@@ -1,0 +1,31 @@
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<h3>Pay via UPI</h3>
+<p>Amount: ₹{{ amount }}</p>
+
+<button id="pay-btn" class="btn btn-success">Pay Now</button>
+
+<script>
+var options = {
+    "key": "{{ razorpay_key }}",
+    "amount": "{{ amount|floatformat:0 }}00",
+    "currency": "INR",
+    "name": "My Store",
+    "order_id": "{{ razorpay_order_id }}",
+    "method": {
+        "upi": true
+    },
+    "handler": function (response){
+        window.location.href = "/verify-payment/?" +
+            "razorpay_payment_id=" + response.razorpay_payment_id +
+            "&razorpay_order_id=" + response.razorpay_order_id +
+            "&razorpay_signature=" + response.razorpay_signature;
+    }
+};
+
+var rzp1 = new Razorpay(options);
+document.getElementById('pay-btn').onclick = function(e){
+    rzp1.open();
+    e.preventDefault();
+}
+</script>
