@@ -29,10 +29,13 @@
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
          <span class="navbar-toggler-icon"></span>
          </button>
+
+         {% if request.session %}
+         
          <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
                <li class="nav-item active">
-                  <a class="nav-link" href="/">Home <span class="sr-only"></span></a>
+                  <a class="nav-link" href="{% url 'homepage' %}">Home <span class="sr-only"></span></a>
                </li>
             </ul>
             <form class="d-flex">
@@ -42,24 +45,30 @@
             <ul class=" navbar-nav my-2 my-lg-0">
                <li class="nav-item active dropdown">
                   <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  Adarsh
+                  {{name}}
                   </a>
                   <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                      <a class="dropdown-item" href="#">Orders</a>
-                     <a class="dropdown-item" href="#">Logout</a>
+                     <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
                   </div>
                </li>
                <li class="nav-item active">
-                  <a class="nav-link" href="#">Cart 
-                  <span class="badge bg-danger">4</span>
+                  <a class="nav-link" href="/show_cart">{{totalitem}} 
+                  <span class="badge bg-danger">Cart</span>
                   <span class="sr-only">(current)</span></a>
                </li>
+
+               {% else %}
+                   
                <li class="nav-item active">
-                  <a class="nav-link" href="#">Login<span class="sr-only"></span></a>
+                  <a class="nav-link" href="/login">Login<span class="sr-only"></span></a>
                </li>
                <li class="nav-item active">
                   <a class="nav-link text" href="/signup/">Signup<span class="sr-only"></span></a>
                </li>
+               
+              {% endif %}
+
             </ul>
          </div>
       </nav>
@@ -73,5 +82,6 @@
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
          integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
          crossorigin="anonymous"></script>
+         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
    </body>
 </html>

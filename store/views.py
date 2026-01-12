@@ -1,60 +1,235 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render, redirect
 from django.http import  HttpResponse
 from .models.product import Product
 from .models.category import Category
+from django.views import View
 from .models.customer import Customer
+from .models.cart import Cart
+from django.http import JsonResponse
+from django.db.models import Q
+
+from store.models import customer
+
+
+# from store.models import customer
 # Create your views here.
 
+
+# ============== home function ==================
 def home(request):
-    Products= None
-    category= Category.get_all_categories();
+    totalitem = 0
+    if not request.session.has_key('phone'):
+        return redirect('login')
     
-    categoryID= request.GET.get('category')
+    phone = request.session['phone']
+    customer = Customer.objects.get(phone=phone)
+    category = Category.get_all_categories()
+    totalitem = len(Cart.objects.filter(phone=phone))
+    
+    categoryID = request.GET.get('category')
     if categoryID:
-        Products= Product.get_all_products_by_categoryid(categoryID)
+        products = Product.get_all_products_by_categoryid(category_id=categoryID)
     else:
-        Products= Product.get_all_products()
-
-
-    data= {}
-    data['Product']= Products
-    data['categories']= category
-    return render(request,'home.html', data) 
-
-
-def signup(request):
-    if request.method=="GET":
-         return render(request,'signup.html')
+        products = Product.get_all_products()
     
-    else:
-        postData= request.POST
-        name = postData.get('name')
-        phone = postData.get('phone')
+    data = {
+        'Product': products,
+        'categories': category,
+        'name': customer.name,
+        'totalitem':totalitem
+    }
+    
+    return render(request, 'home.html', data)
 
-      
-        error_message = None
-        value = {
-            'name': name,
-            'phone': phone
+
+
+# ====================== product detail function ==================
+
+def productdetail(request,pk):
+    totalitem = 0
+    product = Product.objects.get(pk=pk)
+    item_already_in_cart = False
+    if request.session.has_key('phone'):
+        phone = request.session["phone"]
+        totalitem = len(Cart.objects.filter(phone=phone))
+        item_already_in_cart = Cart.objects.filter(Q(product=product.id) & Q(phone=phone)).exists()
+        customer = Customer.objects.filter(phone=phone)
+        for c in customer:
+            name=c.name
+
+        data ={
+            'product':product,
+            'item_already_in_cart':item_already_in_cart,
+            'name':name,
+            'totalitem':totalitem
         }
 
-        if not name:
+        return render(request, 'productdetail.html',data)
+
+
+# ================= logout page =========================
+
+def logout(request):
+    if request.session.has_key('phone'):
+        del request.session["phone"]
+        return redirect('login')
+    else:
+        return redirect('login')
+    
+       
+def add_to_cart(request):
+    phone = request.session['phone']
+    product_id = request.GET.get('prod_id')
+    product_name  =Product.objects.get(id=product_id)
+    product = Product.objects.filter(id=product_id)
+    for p in product:
+        image=p.image
+        price =p.price
+        Cart(phone=phone,product=product_name,image=image,price=price).save()
+        return redirect(f"/product-detail/{product_id}")
+
+# ============================ signup page
+
+class signup(View):
+    def get(self,request):
+        return render(request,'signup.html')
+    
+    def post(self,request):
+         postData= request.POST
+         name = postData.get('name')
+         phone = postData.get('phone')
+
+      
+         error_message = None
+         value = {
+            'name': name,
+            'phone': phone
+             }
+
+         if not name:
             error_message = "Name is required!"
-        elif not phone:
+         elif not phone:
             error_message = "Mobile number is required!"
-        elif len(phone) < 10:
+         elif len(phone) < 10:
             error_message = "Mobile number must be at least 10 digits!"
 
-        elif Customer.objects.filter(phone=phone).exists():  
+         elif Customer.objects.filter(phone=phone).exists():  
             error_message = "Mobile Number Already Exists"
         
-        if error_message:
+         if error_message:
             return render(request, 'signup.html', {'error': error_message,'values': value})
 
         
-        try:
+         try:
             customer = Customer(name=name, phone=phone)
             customer.register()
             return render(request, 'signup.html', {'success': 'Signup successful! You can now login.'})
-        except Exception as e:
+         except Exception as e:
             return render(request, 'signup.html', {'error': str(e)})
+        
+
+
+# ============== login page ==================
+
+
+
+class login(View):
+    def get(self,request):
+        return render(request,'login.html')
+    
+    def post(self,request):
+        phone = request.POST.get('phone')
+        error_message = None
+        value ={
+            'phone':phone
+            }
+        customer = Customer.objects.filter(phone=request.POST["phone"])
+        if customer:
+            request.session['phone'] = phone
+            return redirect('homepage')
+        else:
+            error_message = "Mobile Number is Invalid !!"
+            data = {
+                'error':error_message,
+                'value':value 
+            }
+        return render(request, 'login.html',data)
+
+
+# ==================Cart page=========================
+
+def show_cart(request):
+     totalitem = 0
+     if request.session.has_key('phone'):
+        phone = request.session["phone"]
+        totalitem = len(Cart.objects.filter(phone=phone))
+        customer = Customer.objects.filter(phone=phone)
+        for c in customer:
+            name=c.name
+
+            cart = Cart.objects.filter(phone=phone)
+            data={
+                'name':name,
+                'totalitem':totalitem,
+                'cart':cart
+            }
+            if cart:
+                return render(request,'show_cart.html',data)
+            else:
+                return render(request,'empty_cart.html')
+
+def plus_cart(request):
+    if request.session.has_key('phone'):
+        phone = request.session["phone"]
+        Product_id = request.GET.get('prod_id')
+        cart = Cart.objects.filter(Q(product_id=Product_id) & Q(phone=str(phone))).first()
+
+        if cart:
+            cart.quantity += 1
+            cart.save()
+
+            data = {
+            'quantity': cart.quantity,
+           }
+
+        else:
+            data ={
+                'quantity':0,
+            }
+        return JsonResponse(data)
+    # ================= minus cart function =========================
+def minus_cart(request):
+    if request.session.has_key('phone'):
+        phone = request.session["phone"]
+        Product_id = request.GET.get('prod_id')
+        cart = Cart.objects.filter(Q(product_id=Product_id) & Q(phone=str(phone))).first()
+
+        if cart:
+            cart.quantity -= 1
+            cart.save()
+
+            data = {
+            'quantity': cart.quantity,
+           }
+
+        else:
+            data ={
+                'quantity':0,
+            }
+        return JsonResponse(data)
+    
+# ================== remove cart function =========================
+
+def remove_cart(request):
+    if request.session.has_key('phone'):
+        phone = request.session["phone"]
+        Product_id = request.GET.get('prod_id')
+        cart = Cart.objects.filter(Q(product_id=Product_id) & Q(phone=str(phone))).first()
+
+        if cart:
+            cart.delete()
+        else:
+            data ={
+                'quantity':0,
+            }
+        return JsonResponse(data)

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Cart{% endblock title %}
+{% block content %}
+
+<div class="container">
+    <div class="border rounded p-4 m-4">
+        <p class="display-4 pl-4 ml-4">My cart</p>
+        <hr>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Sr no.</th>
+                    <th>Image</th>
+                    <th>Product Name</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th></th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+             {% for cart in cart %}
+                <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td><img src="{{cart.product.image.url}}" style="height: 88px; view-transition-class: rounded-circle;" alt="" ></td>
+                    <td>{{cart.product.name}}</td>
+                    <td>{{cart.quantity}} </td>
+                    <td>Rs. {{cart.product.price}}</td>
+
+
+                    <td><input type="button" pid="{{cart.product.id}}" class="minus-cart btn btn-primary" value="-"></td>
+                    <td><span  id="quantity">{{cart.quantity}}</span></td>
+                    <td><input type="button" pid="{{cart.product.id}}" class="plus-cart btn btn-primary" value="+"></td>
+                    <td><input type="button" pid="{{cart.product.id}}" class="btn btn-danger btn-sm  remove-cart" value="Delete"></td>
+
+                </tr>
+
+
+
+            </tbody>
+            {% endfor %}
+        </table>
+        <hr>
+        <div class="m-3 p-3">
+            <a href="#" class="btn btn-outline-info border rounded col-lg-3 float-right">Check Out</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==========plus cart ==================
+    $('.plus-cart').click(function(){
+
+       var id=$(this).attr("pid").toString(); 
+       $.ajax({
+        type:"GET",
+        url:"/plus_cart",
+        data:{
+            prod_id:id
+        },
+        success:function(data){
+            console.log(data)
+            location.reload();
+        }
+       })
+    })
+
+
+// ============= minus cart ==================
+     $('.minus-cart').click(function(){
+
+       var id=$(this).attr("pid").toString(); 
+       $.ajax({
+        type:"GET",
+        url:"/minus_cart",
+        data:{
+            prod_id:id
+        },
+        success:function(data){
+            console.log(data)
+            location.reload();
+        }
+       })
+    })
+
+
+// ==============remove cart ==================
+    
+     $('.remove-cart').click(function(){
+
+       var id=$(this).attr("pid").toString();
+       var eml = this; 
+       $.ajax({
+        type:"GET",
+        url:"/remove_cart",
+        data:{
+            prod_id:id
+        },
+        success:function(data){
+            console.log(data)
+            location.reload();
+            $(mythis).closest("tr").fadeOut();
+        }
+       })
+    })
+
+
+</script>
+
+{% endblock %}
