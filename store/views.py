@@ -8,7 +8,7 @@ from .models.customer import Customer
 from .models.cart import Cart
 from .models.order import OrderDetail
 
-
+import uuid
 
 from django.http import JsonResponse
 from django.db.models import Q
@@ -197,6 +197,8 @@ def plus_cart(request):
 
             data = {
             'quantity': cart.quantity,
+            'total_price': cart.quantity * cart.product.price,
+            'item_price': cart.product.price
            }
 
         else:
@@ -217,6 +219,8 @@ def minus_cart(request):
 
             data = {
             'quantity': cart.quantity,
+            'total_price': cart.quantity * cart.product.price,
+            'item_price': cart.product.price
            }
 
         else:
@@ -252,31 +256,43 @@ def checkout(request):
         name = request.POST.get('name')
         address = request.POST.get('address')
         mobile = request.POST.get('mobile')
+        payment_method = request.POST.get('payment_method')
         
         cart_product  = Cart.objects.filter(phone=phone)
+
+        last_order = None
+
         for c in cart_product:
-            product_name = c.product
-            qty = c.quantity
-            price = c.price 
-            image = c.image
+            last_order = OrderDetail.objects.create(
+                user=int(phone),
+                product_name=c.product,
+                image=c.image,
+                qty=c.quantity,
+                price=c.price,
+                payment_method=payment_method,
+                payment_status='PENDING'
+            )
 
 
-
-            OrderDetail(user=phone,product_name=product_name,image=image,qty=qty,price=price).save()
-        cart_product.delete()
-
-        totalitem = len(Cart.objects.filter(phone=phone))
-        customer = Customer.objects.filter(phone=phone).first()
-        name = customer.name if customer else None
-        data ={
-                'name':name,
-                'totalitem':totalitem,
-            }
-
-        return render(request,'empty_cart.html',data)
+        return redirect('upi_payment', order_id=last_order.id)
 
     else:
         return redirect('login')
+    #         OrderDetail(user=phone,product_name=product_name,image=image,qty=qty,price=price).save()
+    #     cart_product.delete()
+
+    #     totalitem = len(Cart.objects.filter(phone=phone))
+    #     customer = Customer.objects.filter(phone=phone).first()
+    #     name = customer.name if customer else None
+    #     data ={
+    #             'name':name,
+    #             'totalitem':totalitem,
+    #         }
+
+    #     return render(request,'empty_cart.html',data)
+
+    # else:
+    #     return redirect('login')
     
 
 # ================= order page ========================
@@ -339,3 +355,29 @@ def search(request):
         return render(request, 'home.html',data)
     else:
         return redirect('login')
+
+
+
+# =========upi payment option============
+def upi_payment(request, order_id):
+    order = OrderDetail.objects.get(id=order_id)
+
+    if request.method == "POST":
+        upi_id = request.POST.get('upi_id')
+
+        order.upi_id = upi_id
+        order.transaction_id = str(uuid.uuid4())
+        order.payment_status = 'SUCCESS'
+        order.save()
+
+        return redirect('payment_success')
+
+    return render(request, 'upi_payment.html', {'order': order})
+
+
+def payment_success(request):
+    if request.session.has_key('phone'):
+        phone = request.session["phone"]
+        Cart.objects.filter(phone=phone).delete()
+
+    return render(request, 'payment_success.html')

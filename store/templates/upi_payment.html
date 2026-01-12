@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Costomer Login{% endblock %}
+{% block content %}
+
+<h3>Pay via UPI</h3>
+
+<p><strong>Product:</strong> {{ order.product_name }}</p>
+<p><strong>Amount:</strong> ₹{{ order.price }}</p>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>UPI ID</label>
+    <input type="text" name="upi_id" class="form-control" placeholder="example@upi" required>
+
+    <button class="btn btn-success mt-3">
+        Pay Now
+    </button>
+</form>
+
+
+{% endblock %}

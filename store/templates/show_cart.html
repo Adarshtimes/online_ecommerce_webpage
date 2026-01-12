@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load cart_filters %}
 {% load static %}
 {% block title %}Cart{% endblock title %}
 {% block content %}
@@ -25,12 +26,14 @@
                     <td>{{forloop.counter}}</td>
                     <td><img src="{{cart.product.image.url}}" style="height: 88px; view-transition-class: rounded-circle;" alt="" ></td>
                     <td>{{cart.product.name}}</td>
-                    <td>{{cart.quantity}} </td>
-                    <td>Rs. {{cart.product.price}}</td>
+                    <!-- <td>{{cart.quantity}} </td> -->
+                    <td><span id="quantity-{{cart.product.id}}">{{cart.quantity}}</span></td>
+                    <td>Rs. <span id="total-price-{{cart.product.id}}">{{ cart.quantity|multiply:cart.product.price }}</span></td>
+                    <td style="display:none;" id="item-price-{{cart.product.id}}">{{cart.product.price}}</td>
 
 
                     <td><input type="button" pid="{{cart.product.id}}" class="minus-cart btn btn-primary" value="-"></td>
-                    <td><span  id="quantity">{{cart.quantity}}</span></td>
+                    <!-- <td><span  id="quantity">{{cart.quantity}}</span></td> -->
                     <td><input type="button" pid="{{cart.product.id}}" class="plus-cart btn btn-primary" value="+"></td>
                     <td><input type="button" pid="{{cart.product.id}}" class="btn btn-danger btn-sm  remove-cart" value="Delete"></td>
 
@@ -68,6 +71,8 @@
     <p>Proceed to payment?</p> -->
     <form action="/checkout" method="POST">
         {% csrf_token %}
+        <input type="hidden" name="payment_method" value="UPI">
+
 
          <div class="form-group mt-3">
             <label for="">Name</label>
@@ -84,7 +89,9 @@
             <label for="">Mobile No.</label>
             <input required type="text" name="mobile" id="mobile" class="form-control" placeholder="Enter your name">
         </div>
-        <input type="submit" class="btn btn-outline-info border rounded col-lg-3 float-right mt-3" value="Make Payment">
+        <!-- <input type="submit" class="btn btn-outline-info border rounded col-lg-3 float-right mt-3" value="Make Payment"> -->
+         <input type="submit"class="btn btn-success border rounded col-lg-3 float-right mt-3" value="Pay with UPI">
+
     </form>
 </div>
       </div>
@@ -109,14 +116,16 @@
             prod_id:id
         },
         success:function(data){
-            console.log(data)
-            location.reload();
+            $('#quantity-' + id).text(data.quantity);
+            $('#total-price-' + id).text(data.total_price);
+            // console.log(data)
+            // location.reload();
         }
        })
     })
 
 
-// ============= minus cart ==================
+// ============= minus cart ============= =====
      $('.minus-cart').click(function(){
 
        var id=$(this).attr("pid").toString(); 
@@ -127,8 +136,10 @@
             prod_id:id
         },
         success:function(data){
-            console.log(data)
-            location.reload();
+            $('#quantity-' + id).text(data.quantity);
+            $('#total-price-' + id).text(data.total_price);
+            // console.log(data)
+            // location.reload();
         }
        })
     })
@@ -147,9 +158,11 @@
             prod_id:id
         },
         success:function(data){
-            console.log(data)
-            location.reload();
-            $(mythis).closest("tr").fadeOut();
+            $('#quantity-' + id).text(data.quantity);
+            $('#total-price-' + id).text(data.total_price);
+            // console.log(data)
+            // location.reload();
+            // $(mythis).closest("tr").fadeOut();
         }
        })
     })

@@ -17,7 +17,9 @@
                     <th>Order Date</th>
                     <th>Price</th>
                     <th>Qty</th>
-                    <th>Status</th>
+                    <th>Order Status</th>
+                    <th>Payment</th>
+                    <th>Transaction</th>
                 </tr>
             </thead>
             <tbody>
@@ -30,6 +32,25 @@
                     <td>{{order.price}}</td>
                     <td>{{order.qty}}</td>
                     <td>{{order.status}}</td>
+
+                  <td>
+                    {% if order.payment_status == 'SUCCESS' %}
+                    <span class="badge bg-success">Paid (UPI)</span>
+                    {% elif order.payment_status == 'FAILED' %}
+                    <span class="badge bg-danger">Failed</span>
+                    {% else %}
+                    <span class="badge bg-warning">Pending</span>
+                    {% endif %}
+                  </td>
+
+                  <td>
+                     {% if order.transaction_id %}
+                     {{ order.transaction_id|slice:":10" }}...
+                     {% else %}
+        —
+                     {% endif %}
+                  </td>
+
                 </tr>
                 {% endfor %}
             </tbody>

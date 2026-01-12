@@ -18,5 +18,7 @@ urlpatterns = [
     path('checkout',views.checkout,name='checkout'),
     path('order/', views.order, name='order' ),
     path('search/', views.search, name='search' ),
+    path('upi-payment/<int:order_id>/', views.upi_payment, name='upi_payment'),
+    path('payment-success/', views.payment_success, name='payment_success'),
 ]
 
