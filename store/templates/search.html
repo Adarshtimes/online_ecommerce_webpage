@@ -21,20 +21,10 @@
         <!---product-->
         <div id="product" class="col-lg-9">
           <div class="row mx-auto">
-      {% for product in Product %}
+      {% for product in search %}
       <div class="card mx-auto mb-3" style="width: 18rem">
-        <a href="{% url 'product-detail' product.id %}" class="btn">
-        <div class="item">
-            
-              
-            {% if product.image %}
-              <img src="{{ product.image.url }}" class="card-img-top" />
-            {% else %}
-            <img src="/static/images/empty_cart.png" class="card-img-top" alt="No image available" />
-            {% endif %}
-
-        </div>
-        </a>
+        <a href="{% url 'product-detail' product.id %}" class="btn"><div class="item">
+            <img src="{{ product.image }}" class="card-img-top"  /></div></a>
         <div class="card-body">
           <h4 class="card-title">{{ product.name }}</h4>
           <h6 class="card-text">Rs. {{ product.price }}</h6>

@@ -1,3 +1,4 @@
+# from urllib import request
 from django.shortcuts import render, redirect
 from django.http import  HttpResponse
 from .models.product import Product
@@ -5,10 +6,14 @@ from .models.category import Category
 from django.views import View
 from .models.customer import Customer
 from .models.cart import Cart
+from .models.order import OrderDetail
+
+
+
 from django.http import JsonResponse
 from django.db.models import Q
 
-from store.models import customer
+# from store.models import customer
 
 
 # from store.models import customer
@@ -45,26 +50,28 @@ def home(request):
 
 # ====================== product detail function ==================
 
-def productdetail(request,pk):
+def productdetail(request, pk):
     totalitem = 0
     product = Product.objects.get(pk=pk)
     item_already_in_cart = False
+    
     if request.session.has_key('phone'):
         phone = request.session["phone"]
         totalitem = len(Cart.objects.filter(phone=phone))
         item_already_in_cart = Cart.objects.filter(Q(product=product.id) & Q(phone=phone)).exists()
-        customer = Customer.objects.filter(phone=phone)
-        for c in customer:
-            name=c.name
+        customer = Customer.objects.filter(phone=phone).first()
+        name = customer.name if customer else None
 
-        data ={
-            'product':product,
-            'item_already_in_cart':item_already_in_cart,
-            'name':name,
-            'totalitem':totalitem
+        data = {
+            'product': product,
+            'item_already_in_cart': item_already_in_cart,
+            'name': name,
+            'totalitem': totalitem
         }
 
-        return render(request, 'productdetail.html',data)
+        return render(request, 'productdetail.html', data)
+    else:
+        return redirect('login')  
 
 
 # ================= logout page =========================
@@ -163,19 +170,19 @@ def show_cart(request):
      if request.session.has_key('phone'):
         phone = request.session["phone"]
         totalitem = len(Cart.objects.filter(phone=phone))
-        customer = Customer.objects.filter(phone=phone)
-        for c in customer:
-            name=c.name
 
-            cart = Cart.objects.filter(phone=phone)
-            data={
-                'name':name,
-                'totalitem':totalitem,
-                'cart':cart
+        customer = Customer.objects.filter(phone=phone).first()
+        name = customer.name if customer else None
+        cart = Cart.objects.filter(phone=phone)
+        data = {
+           'name': name,
+           'totalitem': totalitem,
+            'cart': cart
             }
-            if cart:
+
+        if cart:
                 return render(request,'show_cart.html',data)
-            else:
+        else:
                 return render(request,'empty_cart.html')
 
 def plus_cart(request):
@@ -233,3 +240,102 @@ def remove_cart(request):
                 'quantity':0,
             }
         return JsonResponse(data)
+    
+
+
+# ================ check out fnction ============
+
+def checkout(request):
+    totalitem = 0
+    if request.session.has_key('phone'):
+        phone = request.session["phone"]
+        name = request.POST.get('name')
+        address = request.POST.get('address')
+        mobile = request.POST.get('mobile')
+        
+        cart_product  = Cart.objects.filter(phone=phone)
+        for c in cart_product:
+            product_name = c.product
+            qty = c.quantity
+            price = c.price 
+            image = c.image
+
+
+
+            OrderDetail(user=phone,product_name=product_name,image=image,qty=qty,price=price).save()
+        cart_product.delete()
+
+        totalitem = len(Cart.objects.filter(phone=phone))
+        customer = Customer.objects.filter(phone=phone).first()
+        name = customer.name if customer else None
+        data ={
+                'name':name,
+                'totalitem':totalitem,
+            }
+
+        return render(request,'empty_cart.html',data)
+
+    else:
+        return redirect('login')
+    
+
+# ================= order page ========================
+
+def order(request):
+    totalitem = 0
+    if request.session.has_key('phone'):
+        phone = request.session["phone"]
+        totalitem = len(Cart.objects.filter(phone=phone))
+
+        customer = Customer.objects.filter(phone=phone).first()
+        name = customer.name if customer else ''
+
+ 
+        orders = OrderDetail.objects.filter(user=int(phone))
+        
+            
+
+        data = {
+            'orders':orders,
+            'name':name,
+            'totalitem':totalitem,
+        }
+
+            # order = OrderDetail.objects.filter(user=phone)
+        if orders:
+                return render(request, 'order.html',data)
+        else:
+                return render(request, 'emptyorder.html',data)
+
+    else:
+        return redirect('login')
+    
+
+    # ==============search function ==================
+
+def search(request):
+    totalitem = 0
+    if request.session.has_key('phone'):
+        phone = request.session["phone"]
+        query = request.GET.get('query')
+
+        if not query:
+            return redirect('homepage')
+
+        search=Product.objects.filter(name__icontains=query)
+        category = Category.get_all_categories()
+
+        totalitem = len(Cart.objects.filter(phone=phone))
+
+
+        customer = Customer.objects.filter(phone=phone).first()
+        name = customer.name if customer else None
+        data = {
+            'name':name,
+            'totalitem':totalitem,
+            'categories': category,
+            'Product': search,
+        }
+        return render(request, 'home.html',data)
+    else:
+        return redirect('login')

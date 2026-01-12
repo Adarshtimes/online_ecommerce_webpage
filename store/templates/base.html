@@ -22,6 +22,7 @@
          }
       </style>
    </head>
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
    <body>
       <!-- navbar -->
       <nav class="one-edge-shadow sticky-top navbar navbar-expand-lg navbar navbar-dark bg-primary">
@@ -38,7 +39,9 @@
                   <a class="nav-link" href="{% url 'homepage' %}">Home <span class="sr-only"></span></a>
                </li>
             </ul>
-            <form class="d-flex">
+
+
+            <form class="d-flex" action="/search">
                <input class="form-control me-2 mr-2" type="search" placeholder="Search" aria-label="Search" name="query">
                <button class="btn btn-warning mr-4" type="submit">Search</button>
             </form>
@@ -48,7 +51,7 @@
                   {{name}}
                   </a>
                   <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                     <a class="dropdown-item" href="#">Orders</a>
+                     <a class="dropdown-item" href="/order">Orders</a>
                      <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
                   </div>
                </li>
@@ -83,5 +86,9 @@
          integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
          crossorigin="anonymous"></script>
          <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
    </body>
 </html>
